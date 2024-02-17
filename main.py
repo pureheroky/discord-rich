@@ -7,6 +7,7 @@ import win32gui
 client_id = CLIENT_ID
 RPC = Presence(client_id)
 
+
 def get_info_windows():
     import win32api
     import win32gui
@@ -43,7 +44,7 @@ def get_info_windows():
             pass
 
     if len(windows) == 0:
-        raise SpotifyClosed
+        return ""
 
     try:
         artist, track = windows[0].split(" - ", 1)
@@ -52,22 +53,31 @@ def get_info_windows():
         track = windows[0]
 
     if windows[0].startswith("Spotify"):
-        raise SpotifyPaused
+        return ""
 
     return track, artist
 
+
 def getFile():
-    file = rq.get("http://localhost:1337/getCurrentFilename")
-    return file.json()["name"]
+    try :
+        file = rq.get("http://localhost:1337/getCurrentFilename")
+        return file.json()["name"]
+    except :
+        return "idle"
+
 
 RPC.connect()
 
 while True:
     current_file = getFile()
-    RPC.update(state="listening: " + get_info_windows()[1] + " - " + get_info_windows()[0],
-        details="Working on: " + current_file,
-        large_image="big_imagetest",
-        large_text="random image", 
-        buttons=[{"label": "web", "url": "https://0xpure.com"}],
-    )
+    try:
+        song = get_info_windows()[1] + " - " + get_info_windows()[0]
+    except:
+        song = ""
+    RPC.update(state="listening: " + song,
+               details="Working on: " + current_file,
+               large_image="big_imagetest",
+               large_text="random image",
+               buttons=[{"label": "web", "url": "https://0xpure.com"}],
+               )
     time.sleep(1)
